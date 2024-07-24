@@ -34,10 +34,11 @@
             </div>
             <button type="submit" class="btn btn-primary">Generate Collage</button>
         </form>
+         <div id="downloadLink" class="mt-3"></div>
         <div id="canvasContainer" class="mt-3">
             <canvas id="collageCanvas"></canvas>
         </div>
-        <div id="downloadLink" class="mt-3"></div>
+       
     </div>
     <footer class="bg-dark text-white text-center py-4" style="margin-top: 30vh;">
         <div class="container">
@@ -64,22 +65,13 @@
             const canvas = document.getElementById('collageCanvas');
             const ctx = canvas.getContext('2d');
             const margin = 10;
-            const photoWidth = 150;
-            const photoHeight = 150;
+
             const photosPerRow = groupSize === 4 ? 2 : (groupSize === 6 ? 3 : 4);
-            const canvasWidth = photosPerRow * (photoWidth + margin) + margin;
-            const rows = Math.ceil(photos.length / photosPerRow);
-            const canvasHeight = rows * (photoHeight + margin) + margin;
-
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            let x = margin;
-            let y = margin;
+            const images = [];
+            let maxWidth = 0;
+            let maxHeight = 0;
 
             let imagesLoaded = 0;
-            const images = [];
 
             for (let i = 0; i < photos.length; i++) {
                 const img = new Image();
@@ -87,20 +79,36 @@
                 img.onload = function () {
                     imagesLoaded++;
                     images[i] = img;
+                    maxWidth = Math.max(maxWidth, img.width);
+                    maxHeight = Math.max(maxHeight, img.height);
                     if (imagesLoaded === photos.length) {
+                        setupCanvas();
                         drawImages();
                     }
                 }
             }
 
-            function drawImages() {
-                for (let i = 0; i < images.length; i++) {
-                    ctx.drawImage(images[i], x, y, photoWidth, photoHeight);
+            function setupCanvas() {
+                const rows = Math.ceil(photos.length / photosPerRow);
+                const canvasWidth = photosPerRow * (maxWidth + margin) + margin;
+                const canvasHeight = rows * (maxHeight + margin) + margin;
 
-                    x += photoWidth + margin;
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function drawImages() {
+                let x = margin;
+                let y = margin;
+
+                for (let i = 0; i < images.length; i++) {
+                    ctx.drawImage(images[i], x, y, maxWidth, maxHeight);
+
+                    x += maxWidth + margin;
                     if ((i + 1) % photosPerRow === 0) {
                         x = margin;
-                        y += photoHeight + margin;
+                        y += maxHeight + margin;
                     }
                 }
 
